@@ -1,0 +1,46 @@
+// validacion.js
+// Script de validación para la colección "productos" en la BD "tienda_online"
+
+// Seleccionar la base de datos
+use tienda_online;
+
+// 1) Conteo total de documentos
+print("📊 Total de documentos en la colección:");
+print(db.productos.countDocuments());
+
+// 2) Mostrar algunos documentos de prueba
+print("📄 Ejemplo de 3 documentos de la colección:");
+printjson(db.productos.find().limit(3).toArray());
+
+// 3) Consultar productos de la categoría Gaming
+print("🎮 Productos en la categoría Gaming:");
+printjson(db.productos.find({ categoria: "Gaming" }).limit(5).toArray());
+
+// 4) Promedio de precios por categoría
+print("💰 Promedio de precios por categoría:");
+db.productos.aggregate([
+  { $group: { _id: "$categoria", promedioPrecio: { $avg: "$precio" } } },
+  { $sort: { promedioPrecio: -1 } }
+]).forEach(printjson);
+
+// 5) Conteo de productos por categoría
+print("📦 Conteo de productos por categoría:");
+db.productos.aggregate([
+  { $group: { _id: "$categoria", totalProductos: { $sum: 1 } } },
+  { $sort: { totalProductos: -1 } }
+]).forEach(printjson);
+
+// 6) Top 5 productos con mejor rating
+print("⭐ Top 5 productos mejor calificados:");
+db.productos.aggregate([
+  { $sort: { rating: -1, precio: -1 } },
+  { $limit: 5 },
+  { $project: { nombre: 1, categoria: 1, precio: 1, rating: 1 } }
+]).forEach(printjson);
+
+// 7) Stock total por categoría
+print("📦 Stock total por categoría:");
+db.productos.aggregate([
+  { $group: { _id: "$categoria", stockTotal: { $sum: "$stock" } } },
+  { $sort: { stockTotal: -1 } }
+]).forEach(printjson);
